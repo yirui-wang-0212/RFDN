@@ -140,11 +140,14 @@ class RFDB(nn.Module):
         self.c2_r = conv_layer(self.remaining_channels, self.rc, 3)
         self.c3_d = conv_layer(self.remaining_channels, self.dc, 1)
         self.c3_r = conv_layer(self.remaining_channels, self.rc, 3)
+        self.c3plus_d = conv_layer(self.remaining_channels, self.dc, 1)
+        self.c3plus_r = conv_layer(self.remaining_channels, self.rc, 3)
         self.c4 = conv_layer(self.remaining_channels, self.dc, 3)
         self.act = activation('lrelu', neg_slope=0.05)
         self.c5 = conv_layer(self.dc*4, in_channels, 1)
         self.esa = ESA(in_channels, nn.Conv2d)
 
+    # original: 3 distilled
     def forward(self, input):
         distilled_c1 = self.act(self.c1_d(input))
         r_c1 = (self.c1_r(input))
@@ -164,7 +167,53 @@ class RFDB(nn.Module):
         out_fused = self.esa(self.c5(out)) 
 
         return out_fused
+    
+    # # 2 distilled
+    # def forward(self, input):
+    #     distilled_c1 = self.act(self.c1_d(input))
+    #     r_c1 = (self.c1_r(input))
+    #     r_c1 = self.act(r_c1+input)
 
+    #     distilled_c2 = self.act(self.c2_d(r_c1))
+    #     r_c2 = (self.c2_r(r_c1))
+    #     r_c2 = self.act(r_c2+r_c1)
+
+    #     # distilled_c3 = self.act(self.c3_d(r_c2))
+    #     # r_c3 = (self.c3_r(r_c2))
+    #     # r_c3 = self.act(r_c3+r_c2)
+
+    #     r_c4 = self.act(self.c4(r_c2))
+
+    #     out = torch.cat([distilled_c1, distilled_c2, r_c4], dim=1)
+    #     out_fused = self.esa(self.c5(out)) 
+
+    #     return out_fused
+
+    
+    # # 4 distilled
+    # def forward(self, input):
+    #     distilled_c1 = self.act(self.c1_d(input))
+    #     r_c1 = (self.c1_r(input))
+    #     r_c1 = self.act(r_c1+input)
+
+    #     distilled_c2 = self.act(self.c2_d(r_c1))
+    #     r_c2 = (self.c2_r(r_c1))
+    #     r_c2 = self.act(r_c2+r_c1)
+
+    #     distilled_c3 = self.act(self.c3_d(r_c2))
+    #     r_c3 = (self.c3_r(r_c2))
+    #     r_c3 = self.act(r_c3+r_c2)
+
+    #     distilled_c3plus = self.act(self.c3plus_d(r_c3))
+    #     r_c3plus = (self.c3plus_r(r_c3))
+    #     r_c3plus = self.act(r_c3plus+r_c3)
+
+    #     r_c4 = self.act(self.c4(r_c3plus))
+
+    #     out = torch.cat([distilled_c1, distilled_c2, distilled_c3, distilled_c3plus, r_c4], dim=1)
+    #     out_fused = self.esa(self.c5(out)) 
+
+    #     return out_fused
 
 
 def pixelshuffle_block(in_channels, out_channels, upscale_factor=2, kernel_size=3, stride=1):
